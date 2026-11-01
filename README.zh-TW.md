@@ -2,7 +2,7 @@
 
 [English](README.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md) | 繁體中文
 
-這個 Chrome 擴充功能會在 Google 試算表的圖片選項選單中加入兩個操作：
+這個 Chrome 和 Firefox 擴充功能會在 Google 試算表的圖片選項選單中加入兩個操作：
 
 - `複製圖片`
 - `儲存圖片`
@@ -13,9 +13,11 @@
 
 顯示語言由 Google 試算表的 `html[lang]` 決定：`ja` 顯示日文，`ko` 及其地區變體顯示韓文，`zh-CN` 顯示簡體中文，`zh-TW`、`zh-HK`、`zh-MO`、`zh-Hant` 及其地區變體顯示繁體中文，其他語言顯示英文。
 
-不需要建置，可直接在 Chrome 擴充功能設定中載入此目錄。
+需要 Chrome 121 或更新版本，或 Firefox 127 或更新版本。不需要建置或執行指令。
 
 ## 本機安裝
+
+### Chrome
 
 1. 開啟 `chrome://extensions`。
 2. 啟用開發人員模式。
@@ -23,7 +25,17 @@
 4. 選取此目錄。
 5. 修改擴充功能檔案後，按一下擴充功能的重新載入按鈕，並重新載入已開啟的 Google 試算表分頁。
 
+### Firefox
+
+1. 開啟 `about:debugging#/runtime/this-firefox`。
+2. 按一下載入暫時性附加元件的按鈕，選取 `firefox/manifest.json`。
+3. 修改檔案後，重新載入附加元件和已開啟的 Google 試算表分頁。
+
+暫時性附加元件會在 Firefox 關閉時移除，重新啟動後需要再次載入。
+
 ## 運作方式
+
+`firefox` 目錄包含獨立的資訊清單和共用檔案副本。修改共用檔案時，請同時更新兩份檔案。
 
 內容指令碼會依照 `manifest.json` 中列出的順序載入：`constants.js` 定義共用設定，`i18n.js` 提供翻譯文字，`utils.js` 包含圖片和 DOM 輔助函式，`content.js` 負責偵測選單及執行操作。
 

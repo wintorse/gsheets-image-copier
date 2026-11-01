@@ -7,6 +7,19 @@
  */
 const DOWNLOAD_IMAGE_MESSAGE_TYPE = "GSHEETS_IMAGE_COPIER_DOWNLOAD_IMAGE";
 
+// Firefox requires a background-page blob URL rather than a data URL.
+const USE_BLOB_DOWNLOADS =
+  typeof browser !== "undefined" && typeof browser.runtime?.getBrowserInfo === "function";
+const pendingBlobUrls = new Map();
+
+if (USE_BLOB_DOWNLOADS) {
+  chrome.downloads.onChanged.addListener((delta) => {
+    if (delta.state?.current === "complete" || delta.state?.current === "interrupted") {
+      releaseBlobUrl(delta.id);
+    }
+  });
+}
+
 /**
  * Handles download requests from content scripts.
  *
@@ -18,23 +31,41 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return false;
   }
 
-  chrome.downloads.download(
-    {
-      url: message.dataUrl,
-      filename: message.filename,
-      saveAs: false
-    },
-    (downloadId) => {
-      const runtimeError = chrome.runtime.lastError;
-
-      if (runtimeError) {
-        sendResponse({ ok: false, error: runtimeError.message });
-        return;
+  (async () => {
+    let blobUrl;
+    try {
+      if (USE_BLOB_DOWNLOADS) {
+        const blob = await (await fetch(message.dataUrl)).blob();
+        blobUrl = URL.createObjectURL(blob);
       }
 
+      const downloadId = await new Promise((resolve, reject) => {
+        chrome.downloads.download(
+          { url: blobUrl || message.dataUrl, filename: message.filename, saveAs: false },
+          (id) => {
+            const error = chrome.runtime.lastError;
+            if (error) reject(new Error(error.message));
+            else resolve(id);
+          }
+        );
+      });
+
+      if (blobUrl) {
+        pendingBlobUrls.set(downloadId, blobUrl);
+        // A small download can finish before its ID reaches the callback.
+        chrome.downloads.search({ id: downloadId }, (items) => {
+          if (chrome.runtime.lastError) return;
+          if (items[0]?.state === "complete" || items[0]?.state === "interrupted") {
+            releaseBlobUrl(downloadId);
+          }
+        });
+      }
       sendResponse({ ok: true, downloadId });
+    } catch (error) {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
     }
-  );
+  })();
 
   return true;
 });
@@ -59,4 +90,11 @@ function isDownloadImageMessage(message) {
       typeof message.filename === "string" &&
       message.filename.length > 0
   );
+}
+
+function releaseBlobUrl(downloadId) {
+  const blobUrl = pendingBlobUrls.get(downloadId);
+  if (!blobUrl) return;
+  URL.revokeObjectURL(blobUrl);
+  pendingBlobUrls.delete(downloadId);
 }

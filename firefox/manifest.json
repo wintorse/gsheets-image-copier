@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Google Sheets Image Copier",
+  "version": "1.0.0",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
+  "permissions": ["clipboardWrite", "downloads"],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{9d197fa1-ecd5-4ee8-8390-0a6070d319f4}",
+      "strict_min_version": "127.0"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/spreadsheets/*"],
+      "js": ["constants.js", "i18n.js", "utils.js", "content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

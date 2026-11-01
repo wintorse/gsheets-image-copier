@@ -2,7 +2,7 @@
 
 English | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-Chrome extension that adds two actions to the image options menu in Google Sheets:
+Browser extension for Chrome and Firefox that adds two actions to the image options menu in Google Sheets:
 
 - `Copy image`
 - `Save image`
@@ -13,9 +13,11 @@ It supports only images placed over cells.
 
 The labels follow Google Sheets' `html[lang]`: Japanese for `ja`, Korean for `ko` and its regional variants, Simplified Chinese for `zh-CN`, Traditional Chinese for `zh-TW`, `zh-HK`, `zh-MO`, and `zh-Hant` variants, and English for every other language.
 
-The extension is intentionally build-free. Load this directory directly from Chrome's extension settings.
+Chrome 121 or later, or Firefox 127 or later, is required. No build or command-line setup is needed.
 
 ## Install for local use
+
+### Chrome
 
 1. Open `chrome://extensions`.
 2. Enable developer mode.
@@ -23,7 +25,17 @@ The extension is intentionally build-free. Load this directory directly from Chr
 4. Select this directory.
 5. After editing extension files, click the extension's reload button and reload the open Google Sheets tab.
 
+### Firefox
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Click `Load Temporary Add-on` and select `firefox/manifest.json`.
+3. After editing extension files, click the add-on's reload button and reload the open Google Sheets tab.
+
+Temporary add-ons are removed when Firefox closes and must be loaded again after restarting.
+
 ## How it works
+
+The `firefox` directory contains a separate manifest and copies of the shared extension files. When modifying shared files, update both copies.
 
 The content scripts load in the order listed in `manifest.json`: `constants.js` defines shared settings, `i18n.js` provides localized text, `utils.js` contains image and DOM helpers, and `content.js` handles menu detection and actions.
 
